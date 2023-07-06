@@ -1,25 +1,5 @@
-/**
- * This file contains utilities for using client hints for user preference which
- * are needed by the server, but are only known by the browser.
- */
-import * as React from "react";
-import { type SerializeFrom } from "@remix-run/node";
-import { useRouteLoaderData, useRevalidator } from "@remix-run/react";
-import { type loader as rootLoader } from "~/root";
-import { type ClassValue, clsx } from "clsx";
-import { twMerge } from "tailwind-merge";
-
-export function cn(...inputs: ClassValue[]) {
-  return twMerge(clsx(inputs));
-}
-
-/**
- * @returns the request info from the root loader
- */
-export function useRequestInfo() {
-  const data = useRouteLoaderData("root") as SerializeFrom<typeof rootLoader>;
-  return data.requestInfo;
-}
+import React from "react";
+import { useRevalidator } from "@remix-run/react";
 
 export const clientHints = {
   theme: {
@@ -62,13 +42,16 @@ export function getHints(request?: Request) {
       ? request.headers.get("Cookie") ?? ""
       : "";
 
-  return Object.entries(clientHints).reduce(
+  const hints = Object.entries(clientHints).reduce(
     (acc, [name, hint]) => {
       const hintName = name as ClientHintNames;
       // using ignore because it's not an issue with only one hint, but will
       // be with more than one...
       // @ts-ignore PR to improve these types is welcome
-      acc[hintName] = hint.transform(getCookieValue(cookieString, hintName));
+      const transformedHint = hint.transform(
+        getCookieValue(cookieString, hintName)
+      );
+      acc[hintName] = transformedHint;
       return acc;
     },
     {} as {
@@ -77,14 +60,8 @@ export function getHints(request?: Request) {
       >;
     }
   );
-}
 
-/**
- * @returns an object with the client hints and their values
- */
-export function useHints() {
-  const requestInfo = useRequestInfo();
-  return requestInfo.hints;
+  return hints;
 }
 
 /**
@@ -103,10 +80,6 @@ export function ClientHintCheck({ nonce }: { nonce: string }) {
       }`;
       revalidate();
     }
-    console.log(
-      "client hint check ran ",
-      themeQuery.matches ? "dark" : "light"
-    );
     themeQuery.addEventListener("change", handleThemeChange);
     return () => {
       themeQuery.removeEventListener("change", handleThemeChange);
@@ -123,6 +96,7 @@ const cookies = document.cookie.split(';').map(c => c.trim()).reduce((acc, cur) 
 	acc[key] = value;
 	return acc;
 }, {});
+
 let cookieChanged = false;
 const hints = [
 ${Object.values(clientHints)
@@ -132,6 +106,7 @@ ${Object.values(clientHints)
   })
   .join(",\n")}
 ];
+
 for (const hint of hints) {
 	if (hint.cookie !== hint.actual) {
 		cookieChanged = true;
@@ -147,18 +122,7 @@ if (cookieChanged) {
   );
 }
 
-export enum Theme {
-  DARK = "dark",
-  LIGHT = "light",
-  SYSTEM = "system",
-}
-
-export const themes: Array<Theme> = Object.values(Theme);
-
-export function isTheme(value: unknown): value is Theme {
-  return typeof value === "string" && themes.includes(value as Theme);
-}
-
+// Use nonce for the script tag
 export const NonceContext = React.createContext<string>("");
 export const NonceProvider = NonceContext.Provider;
 export const useNonce = () => React.useContext(NonceContext);

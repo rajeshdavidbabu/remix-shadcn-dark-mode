@@ -15,9 +15,9 @@ import {
   // useLoaderData,
 } from "@remix-run/react";
 import clsx from "clsx";
-import { ThemeSwitch, useTheme } from "./routes/action.set-theme";
-import { getTheme } from "./lib/theme.server";
-import { ClientHintCheck, getHints, useNonce } from "./lib/utils";
+import { useTheme } from "./routes/action.set-theme";
+import { getTheme } from "./lib/theme-session.server";
+import { ClientHintCheck, getHints, useNonce } from "./lib/client-hints";
 
 export const links: LinksFunction = () => [
   { rel: "stylesheet", href: styles },
@@ -49,7 +49,6 @@ export default function App() {
         <Links />
       </head>
       <body>
-        <ThemeSwitch />
         <Outlet />
         <ScrollRestoration />
         <Scripts />

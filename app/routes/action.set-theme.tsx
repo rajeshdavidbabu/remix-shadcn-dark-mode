@@ -6,10 +6,11 @@ import {
   deleteTheme,
   setTheme,
   commitSession,
-} from "~/lib/theme.server";
+} from "~/lib/theme-session.server";
 import type { Theme } from "~/lib/utils";
 import { useHints, isTheme, useRequestInfo } from "~/lib/utils";
 import { DarkModeToggle } from "~/components/ui/dark-mode-toggle";
+import React from "react";
 
 export const action: ActionFunction = async ({ request }) => {
   const session = await getSession(request.headers.get("cookie"));
@@ -38,9 +39,15 @@ export const action: ActionFunction = async ({ request }) => {
 
 export function ThemeSwitch() {
   const fetcher = useFetcher();
+  const [cookiesEnabled, setCookiesEnabled] = React.useState(() => {
+    try {
+      return navigator.cookieEnabled;
+    } catch {
+      return false;
+    }
+  });
 
   const handleSelect = (themeValue: Theme) => {
-    // programmatically submit a useFetcher form in Remix
     fetcher.submit(
       { theme: themeValue },
       { method: "post", action: "/action/set-theme" }
@@ -57,6 +64,5 @@ export function ThemeSwitch() {
 export function useTheme() {
   const hints = useHints();
   const requestInfo = useRequestInfo();
-  console.log("The current useTheme call ", requestInfo.session.theme);
   return requestInfo.session.theme ?? hints.theme;
 }
