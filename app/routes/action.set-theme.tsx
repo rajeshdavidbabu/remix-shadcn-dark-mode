@@ -39,13 +39,6 @@ export const action: ActionFunction = async ({ request }) => {
 
 export function ThemeSwitch() {
   const fetcher = useFetcher();
-  const [cookiesEnabled, setCookiesEnabled] = React.useState(() => {
-    try {
-      return navigator.cookieEnabled;
-    } catch {
-      return false;
-    }
-  });
 
   const handleSelect = (themeValue: Theme) => {
     fetcher.submit(
