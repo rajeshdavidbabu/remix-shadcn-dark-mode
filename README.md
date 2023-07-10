@@ -1,4 +1,4 @@
-# Welcome to Remix!
+# Remix Dark-mode Toggle
 A simple Remix app built with Shadcn-ui with Dark-mode toggle based on Kent's Epic Stack.
 
 
