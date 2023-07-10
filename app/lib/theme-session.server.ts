@@ -1,35 +1,23 @@
-import { createCookieSessionStorage } from "@remix-run/node";
+import * as cookie from "cookie";
 
-const themeKey = "theme";
+const cookieName = "theme";
+type Theme = "light" | "dark" | undefined;
 
-export const sessionStorage = createCookieSessionStorage({
-  cookie: {
-    name: themeKey,
-    sameSite: "lax",
-    path: "/",
-    httpOnly: true,
-    secrets: ["sec3ret"], // Use process.env.SESSION_SECRET
-    secure: process.env.NODE_ENV === "production",
-  },
-});
+// Returns the cookie value set by server
+export function getTheme(request: Request): Theme {
+  const cookieHeader = request.headers.get("Cookie");
+  const parsed = cookieHeader && cookie.parse(cookieHeader)[cookieName];
 
-export const { getSession, commitSession, destroySession } = sessionStorage;
+  if (parsed === "light" || parsed === "dark") return parsed;
 
-type Session = Awaited<ReturnType<typeof getSession>>;
-
-export async function getTheme(
-  request: Request
-): Promise<"dark" | "light" | null> {
-  const session = await getSession(request.headers.get("Cookie"));
-  const theme = session.get(themeKey);
-  if (theme === "dark" || theme === "light") return theme;
-  return null;
+  return undefined;
 }
 
-export function setTheme(session: Session, theme: "dark" | "light") {
-  session.set(themeKey, theme);
-}
-
-export function deleteTheme(session: Session) {
-  session.unset(themeKey);
+// Cookie value set by the server
+export function setTheme(theme?: Theme) {
+  if (theme) {
+    return cookie.serialize(cookieName, theme, { path: "/" });
+  } else {
+    return cookie.serialize(cookieName, "", { path: "/", maxAge: 0 });
+  }
 }

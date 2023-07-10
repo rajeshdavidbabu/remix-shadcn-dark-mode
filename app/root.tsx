@@ -18,6 +18,7 @@ import clsx from "clsx";
 import { useTheme } from "./routes/action.set-theme";
 import { getTheme } from "./lib/theme-session.server";
 import { ClientHintCheck, getHints, useNonce } from "./lib/client-hints";
+import React from "react";
 
 export const links: LinksFunction = () => [
   { rel: "stylesheet", href: styles },
@@ -28,8 +29,8 @@ export async function loader({ request }: DataFunctionArgs) {
   return json({
     requestInfo: {
       hints: getHints(request),
-      session: {
-        theme: await getTheme(request),
+      userPrefs: {
+        theme: getTheme(request),
       },
     },
   });
@@ -38,6 +39,8 @@ export async function loader({ request }: DataFunctionArgs) {
 export default function App() {
   const nonce = useNonce();
   const theme = useTheme();
+
+  console.log("theme should be null on first load ", theme);
 
   return (
     <html lang="en" className={clsx(theme)}>

@@ -11,10 +11,12 @@ export const clientHints = {
     },
   },
   // add other hints here
+  // eg: motion-preference etc
 };
 
 type ClientHintNames = keyof typeof clientHints;
 
+// Returns the cookie value eg: 'dark' or 'light'
 function getCookieValue(cookieString: string, name: ClientHintNames) {
   const hint = clientHints[name];
   if (!hint) {
@@ -33,6 +35,7 @@ function getCookieValue(cookieString: string, name: ClientHintNames) {
  *
  * @param request {Request} - optional request object (only used on server)
  * @returns an object with the client hints and their values
+ * Eg: { theme: 'dark' }
  */
 export function getHints(request?: Request) {
   const cookieString =
@@ -49,7 +52,7 @@ export function getHints(request?: Request) {
       // be with more than one...
       // @ts-ignore PR to improve these types is welcome
       const transformedHint = hint.transform(
-        getCookieValue(cookieString, hintName)
+        getCookieValue(cookieString, hintName) ?? hint.fallback
       );
       acc[hintName] = transformedHint;
       return acc;
@@ -73,6 +76,7 @@ export function ClientHintCheck({ nonce }: { nonce: string }) {
   const { revalidate } = useRevalidator();
 
   React.useEffect(() => {
+    console.log("script component ran");
     const themeQuery = window.matchMedia("(prefers-color-scheme: dark)");
     function handleThemeChange() {
       document.cookie = `${clientHints.theme.cookieName}=${
@@ -96,7 +100,7 @@ const cookies = document.cookie.split(';').map(c => c.trim()).reduce((acc, cur) 
 	acc[key] = value;
 	return acc;
 }, {});
-
+console.log('actual script ran');
 let cookieChanged = false;
 const hints = [
 ${Object.values(clientHints)
@@ -113,7 +117,8 @@ for (const hint of hints) {
 		document.cookie = hint.name + '=' + hint.actual;
 	}
 }
-if (cookieChanged) {
+if (cookieChanged && navigator.cookieEnabled) {
+    console.log('cookie changed, reloading');
 	window.location.reload();
 }
 			`,

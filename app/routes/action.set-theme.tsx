@@ -1,19 +1,12 @@
 import { json } from "@remix-run/node";
 import type { ActionFunction } from "@remix-run/node";
 import { useFetcher } from "@remix-run/react";
-import {
-  getSession,
-  deleteTheme,
-  setTheme,
-  commitSession,
-} from "~/lib/theme-session.server";
+import { setTheme } from "~/lib/theme-session.server";
 import type { Theme } from "~/lib/utils";
 import { useHints, isTheme, useRequestInfo } from "~/lib/utils";
 import { DarkModeToggle } from "~/components/ui/dark-mode-toggle";
-import React from "react";
 
 export const action: ActionFunction = async ({ request }) => {
-  const session = await getSession(request.headers.get("cookie"));
   const requestText = await request.text();
   const form = new URLSearchParams(requestText);
   const theme = form.get("theme");
@@ -25,15 +18,13 @@ export const action: ActionFunction = async ({ request }) => {
     });
   }
 
-  if (theme === "system") {
-    deleteTheme(session);
-  } else {
-    setTheme(session, theme);
-  }
-
   return json(
     { success: true },
-    { headers: { "Set-Cookie": await commitSession(session) } }
+    {
+      headers: {
+        "Set-Cookie": setTheme(theme === "system" ? undefined : theme),
+      },
+    }
   );
 };
 
@@ -57,5 +48,5 @@ export function ThemeSwitch() {
 export function useTheme() {
   const hints = useHints();
   const requestInfo = useRequestInfo();
-  return requestInfo.session.theme ?? hints.theme;
+  return requestInfo.userPrefs.theme ?? hints.theme;
 }

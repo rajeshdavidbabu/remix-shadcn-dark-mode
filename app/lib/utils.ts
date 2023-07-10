@@ -29,13 +29,3 @@ export const themes: Array<Theme> = Object.values(Theme);
 export function isTheme(value: unknown): value is Theme {
   return typeof value === "string" && themes.includes(value as Theme);
 }
-
-export function getThemesFromLocalStorage() {
-  const theme = localStorage.getItem("remix-theme");
-  if (isTheme(theme)) return theme;
-  return null;
-}
-
-export function setThemeInLocalStorage(theme: Theme) {
-  localStorage.setItem("remix-theme", theme);
-}
