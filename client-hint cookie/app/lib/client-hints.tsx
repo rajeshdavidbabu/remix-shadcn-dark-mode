@@ -28,7 +28,7 @@ function getCookieValue(cookieString: string, name: ClientHintNames) {
     .find((c) => c.startsWith(hint.cookieName + "="))
     ?.split("=")[1];
 
-  return value ?? null;
+  return value ? decodeURIComponent(value) : null;
 }
 
 /**
@@ -112,7 +112,7 @@ ${Object.values(clientHints)
 ];
 
 for (const hint of hints) {
-	if (hint.cookie !== hint.actual) {
+	if (decodeURIComponent(hint.cookie) !== hint.actual) {
 		cookieChanged = true;
 		document.cookie = encodeURIComponent(hint.name) + '=' + encodeURIComponent(hint.actual) + ';path=/';
 	}
